@@ -1,2 +1,2 @@
-# GP_2018_startapplicatie
-Initial application as baseline for GP Students @HU 2017-2018
+## Groepsproject hbo-ict propedeuse semester 2
+Dit project is gemaakt met Java en Polymer.

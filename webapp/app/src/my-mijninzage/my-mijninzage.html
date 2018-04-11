@@ -1,0 +1,159 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+
+
+<dom-module id="my-mijninzage">
+  <template>
+    <style>
+      .main-div {
+        margin:25px;
+        padding:10px;
+        background-color:#EEE;
+        border-radius:3px;
+      }
+      .my-button[disabled] {            /* styling als de opslaan button disabled is. */
+        background: lightgray;
+        color: darkgray;
+      }
+
+      .block {
+        display:block;
+      }
+
+      .none {
+        display:none;
+      }
+
+      .my-button {
+        width: 25%;
+        color: white;
+        background: #1a9fd9;
+        --paper-button-ink-color: #00567B;
+        margin-top: 15px;
+      }
+
+
+    </style>
+
+    <div class="main-div">
+      <h1>Persoonlijke inzage </h1>
+      <div class="dropdown">
+        <div class="dropdownklas">
+        <paper-dropdown label="Selecteer een klas" value="{{klas}}">
+          <paper-item disabled> Selecteer een klas </paper-item>
+          <paper-item value="V1B" on-click="_itemSelected">V1B</paper-item>
+          <paper-item value="V1C"  on-click="_itemSelected">V1C</paper-item>
+          <paper-item value="V1D"  on-click="_itemSelected">V1D</paper-item>
+          <paper-item value="V1E"  on-click="_itemSelected">V1E</paper-item>
+          <paper-item value="V1F"  on-click="_itemSelected">V1F</paper-item>
+        </paper-dropdown>
+      </div>
+      <div class="dropdownstudenten">
+      <paper-dropdown label="Studenten" value="{{singleStudent}}">
+          <template is="dom-repeat" items="[[studenten]]">
+            <paper-item value$="[[item.id]]" on-click="_studentSelected"> [[item.firstName]] [[item.lastName]]</paper-item>
+          </template>
+      </paper-dropdown>
+    </div>
+    <div id="persoonWrapper">
+      <template is="dom-repeat" items="[[studentData]]">
+          <h2> Aanwezigheid [[item.firstName]] [[item.prefix]] [[item.lastName]]</h2>
+          <span> [[item.firstName]] heeft een aanwezigheid van [[item.percentageAanwezig]] %</span>
+      </template>
+    </div>
+    </div>
+
+
+    <iron-ajax
+      id="ajax_studenten_ophalen"
+      method="POST"
+      url="/mijninzage/ophalen/studenten"
+      handle-as="json"
+      on-response="_studenten_ophalen_response_handler">
+    </iron-ajax>
+
+    <iron-ajax
+      id="ajax_student_ophalen"
+      method="POST"
+      url="/mijninzage/ophaal/student"
+      handle-as="json"
+      on-response="_student_ophalen_response_handler">
+    </iron-ajax>
+
+  </template>
+
+  <script>
+  (function() {
+    'use strict';
+
+    /* _xxxx private              : geen external data binding      - geen notify
+       _c_xx private constant     : geen external binding, constant - geen notify
+       c_xx  public constant      : one way external databinding [[c_xx]] - geen notify nodig
+       xxxx  public               : two way external databinding {{xxxx}} - notify nodig
+    */
+    Polymer({
+      is: 'my-mijninzage',
+
+      properties: {
+        student: {
+          type: String,
+          value: ""              /* om snel te testen zonder steeds input te doen */
+        },
+        note: {
+          type:String,
+          value: ""
+        },
+        klas: {
+          type:String,
+          value: ""
+        },
+        studenten: {
+          type: Array
+        },
+        singleStudent: {
+          type:Number
+        },
+        studentData:{
+          type:Object
+        }
+      },
+
+      _itemSelected : function(request) {
+        this.$.ajax_studenten_ophalen.contentType="application/json";
+        this.$.ajax_studenten_ophalen.body={
+            "klas" : this.klas
+        };
+        this.$.ajax_studenten_ophalen.generateRequest();
+       },
+
+       _studenten_ophalen_response_handler : function(request) {
+         this.studenten = request.detail.response;
+         console.log(this.studenten);
+       },
+
+       _studentSelected : function(request) {
+         this.singleStudent = request.target.getAttribute("value");
+        this._studentSelectedRequest();
+       },
+
+       _studentSelectedRequest : function(request){
+         this.$.ajax_student_ophalen.contentType="application/json";
+         this.$.ajax_student_ophalen.body={
+             "student" : this.singleStudent
+         };
+         this.$.ajax_student_ophalen.generateRequest();
+       },
+       _student_ophalen_response_handler : function(request) {
+         console.log(request.detail.response);
+         this.studentData = request.detail.response;
+       }
+
+
+    });
+
+  })();
+  </script>
+</dom-module>

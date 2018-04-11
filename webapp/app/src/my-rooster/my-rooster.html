@@ -1,0 +1,155 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+
+
+
+<dom-module id="my-rooster">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    .button2{
+    background-color:#1a9fd9;
+    border:none;
+   margin-left:15px;
+   margin-top:15px;
+   color:white;
+   width:100px;
+   height:25px;
+    }
+
+    .datepicker {
+      margin-left:15px;
+      margin-top:25px;
+    }
+
+    #rooster {
+      margin-left:15px;
+      margin-top:25px;
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    #rooster td, #rooster th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    #rooster tr:nth-child(even){background-color: #1a9fd9;}
+
+    #rooster tr:hover {background-color: #ddd;}
+
+    #rooster th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #1a9fd9;
+        color: white;
+    }
+
+    .none {
+      display:none;
+    }
+
+    </style>
+
+    <div class="title"><h2> Rooster: </h2></div>
+	   <div class="datepicker">
+       <paper-dropdown label="Selecteer een klas" value="{{klas}}">
+         <paper-item disabled> Selecteer een klas </paper-item>
+         <paper-item value="V1B" >V1B</paper-item>
+         <paper-item value="V1C" >V1C</paper-item>
+         <paper-item value="V1D" >V1D</paper-item>
+         <paper-item value="V1E" >V1E</paper-item>
+         <paper-item value="V1F" >V1F</paper-item>
+       </paper-dropdown>
+     </div>
+
+     <div class="datepicker">
+       <vaadin-date-picker value="{{datumPicked}}"></vaadin-date-picker>
+     </div>
+     <button class="button2" on-click="_toonRooster"> Toon rooster </button>
+    </div>
+
+    <div id="rooster">
+      <table class="test">
+        <tr>
+          <th> Les </th>
+          <th> Van </th>
+          <th> Tot <th>
+        </tr>
+      <template is="dom-repeat" items="[[rooster]]">
+          <tr>
+              <td> [[item.name]] </td>
+              <td> [[item.start_time]] </td>
+              <td> [[item.end_time]] </td>
+              <td> [[item.docent]] </td>
+          </tr>
+      </template>
+      </table>
+  </div>
+
+
+    <iron-ajax
+      id="ajax_rooster_ophalen"
+      method="POST"
+      url="/rooster/ophalen"
+      handle-as="json"
+      on-response="_rooster_ophalen_response_handler">
+    </iron-ajax>
+
+
+  </template>
+
+  <script>
+  (function() {
+    'use strict';
+
+    /* _xxxx private              : geen external data binding      - geen notify
+       _c_xx private constant     : geen external binding, constant - geen notify
+       c_xx  public constant      : one way external databinding [[c_xx]] - geen notify nodig
+       xxxx  public               : two way external databinding {{xxxx}} - notify nodig
+    */
+    Polymer({
+      is: 'my-rooster',
+
+      properties: {
+        datumPicked: {
+          type:String,
+        },
+        klas: {
+          type:String,
+          value:"V1B"
+        },
+        rooster: {
+          type:Array,
+        }
+      },
+
+    _toonRooster : function(request) {
+      this.$.ajax_rooster_ophalen.contentType="application/json";
+      this.$.ajax_rooster_ophalen.body={
+          "datumPicked" : this.datumPicked,
+          "klas" : this.klas
+      };
+      this.$.ajax_rooster_ophalen.generateRequest();
+     },
+
+     _rooster_ophalen_response_handler : function(request){
+       this.rooster = request.detail.response;
+     }
+
+    });
+
+  })();
+  </script>
+</dom-module>

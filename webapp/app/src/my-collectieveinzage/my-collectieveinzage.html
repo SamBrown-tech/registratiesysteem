@@ -1,0 +1,228 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid-selection-column.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
+
+<dom-module id="my-collectieveinzage">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    .dropdown{
+    margin-left: 10px;
+    }
+    .button1{
+    background-color: lightblue;
+    width: 10%;
+    margin-left:200px;
+    }
+    .title{
+    margin-left: 10px;
+    }
+    .tabel{
+    margin-left:10px;
+    }
+
+    #table {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    }
+
+    #table td, #table th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    #table tr:nth-child(even){background-color: #f2f2f2;}
+
+    #table tr:hover {background-color: #ddd;}
+
+    #table th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #4CAF50;
+        color: white;
+    }
+
+
+    </style>
+
+    <div class="title"><h2> Collectieve inzage</h2></div>
+
+    <div class="dropdown">
+      <div class="dropdownklas">
+      <paper-dropdown label="Klas">
+        <paper-item value="V1B" on-click="_itemSelected">V1B</paper-item>
+        <paper-item value="V1C"  on-click="_itemSelected">V1C</paper-item>
+        <paper-item value="V1D"  on-click="_itemSelected">V1D</paper-item>
+        <paper-item value="V1E"  on-click="_itemSelected">V1E</paper-item>
+        <paper-item value="V1F"  on-click="_itemSelected">V1F</paper-item>
+      </paper-dropdown>
+    </div>
+
+    <div class="my-title">Collectieve inzage</div>
+
+    <table id="table">
+        <template is="dom-repeat" items="[[_c_presentie]]">
+
+        <tr>
+            <th>Vakken</th>
+            <th>Percentages</th>
+        </tr>
+        <tr>
+          <td>AUI</td>
+          <td>[[item.aui_percentage]]</td>
+        </tr>
+        <tr>
+          <td>GP</td>
+          <td>[[item.gp_percentage]]</td>
+        </tr>
+        <tr>
+          <td>OODC</td>
+          <td>[[item.oodc_percentage]]</td>
+        </tr>
+    </template>
+    </table>
+
+    <iron-ajax
+      id="ajax_klas_ophalen"
+      method="POST"
+      url="/presentie"
+      handle-as="json"
+      on-response="_presentie_ophalen_response_handler">
+    </iron-ajax>
+
+
+
+    <iron-ajax
+      id="ajax_presentie_ophalen"
+      method="POST"
+      url="/collectieveinzage/presentie"
+      handle-as="json"
+      on-response="_presentie_ophalen_response_handler">
+    </iron-ajax>
+  </template>
+
+  <script>
+  (function() {
+    'use strict';
+    /* _xxxx private              : geen external data binding      - geen notify
+       _c_xx private constant     : geen external binding, constant - geen notify
+       c_xx  public constant      : one way external databinding [[c_xx]] - geen notify nodig
+       xxxx  public               : two way external databinding {{xxxx}} - notify nodig
+    */
+    Polymer({
+      is: 'my-collectieveinzage',
+
+      properties: {
+        _c_presentie: {
+          type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
+                                      array is constant groepnr is changable */
+        },
+        c_rol: {
+          type: String,
+        },
+        c_username: {
+          type: String,
+        },
+        _systeemdatumstandaard: {
+            type: String,
+          },
+        c_visible: {
+          type: Boolean,                                      /* true when element is the active visible item */
+          value: false,
+          observer: '_initializing',                          /* wordt ook aangeroepen bijwisseling van true naar false.
+                                                                 regel in de functie dat er niets gebeurd
+                                                                 als c_visible false is */
+        },
+                  c_klas : {
+                      type: String,
+                      value: "",
+                  }
+      },
+
+      _go_home: function() {
+        var lApp = document.querySelector('my-app');  //het polymer element <my-app>
+        var lAppRouter = lApp.$.approuter;            // het html-element <app-route> met id=approuter
+        lAppRouter.data={page: ""};                   // vul het data attribute met de homepage url
+                                                      // door de two way binding in <app-route> en <app-location>
+                                                      // zal ook de url echt wijzigen
+      },
+
+      _initializing : function() {
+
+        if (this.c_visible == true) {
+
+                                     // zodra zichtbaar geworden moet er wat worden gedaan
+          if (this.c_rol=="docent") {                        // voor studenten
+
+          } else {                                            // na handmatige url wijziging zonder login
+            var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
+            lToast.open();                                    /* het sluiten van deze error verwijst  */
+                                                              /* terug naar home page */
+          }
+        }
+      },
+
+      _itemSelected : function(e) {
+          this.c_klas = e.target.getAttribute("value");
+          this._presentie_ophalen_request_handler();
+          this._presentie_ophalen_response_handler();
+          console.log(this.c_klas);
+       },
+      _presentie_ophalen_request_handler: function() {
+        console.log("_klas_ophalen_request_handler user="+this.c_username);
+        this.$.ajax_klas_ophalen.contentType="application/json";
+        this.$.ajax_klas_ophalen.body={
+          "klas": this.c_klas,
+        };
+        this.$.ajax_klas_ophalen.generateRequest();
+      },
+
+      _presentie_ophalen_response_handler: function(request) {
+        this._c_presentie = request.detail.response;
+      },
+
+
+
+      ready: function()  {
+        /* deze functie wordt eenamalig aangeroepen wanneer de applicatie start
+        /*  _systeemdatumlokaal variabele wordt gebruikt om de huidige systeem datum (of de test systeemdatum)
+             in de pagina kop te vermelden
+        */
+        /* gebruikt het Javascript date object om op basis van een standaarddatumstring
+           een object te maken en via dit een lokaledatumstring te maken */
+        var eenDatumObject             = new Date(); // is vandaag
+        this._systeemdatumstandaard    = this.date_to_standaard_string(eenDatumObject);
+        this._systeemdatumlokaal       = eenDatumObject.toLocaleDateString();
+        console.log("application ready to run");
+        },
+
+     _toast_clicked: function(e) {
+       var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
+       lToast.toggle();
+       this._go_home();
+      },
+
+    });
+  })();
+  </script>
+</dom-module>

@@ -1,0 +1,411 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid-selection-column.html">
+<link rel="import" href="../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
+
+<dom-module id="my-invoeren">
+      <template>
+            <style>
+                  :host {
+                    display: block;
+                  }
+                  :root {
+                    --paper-input-container-focus-color: #1a9fd9; /* kind of blue */
+                  }
+
+                  span {
+                    @apply --paper-font-body1;
+                  }
+                  .toast-button {
+                    text-transform: none;
+                    color: white;                           /* white tekst */
+                    background: #1a9fd9;                    /* kind of blue */
+                    --paper-button-ink-color: #00567B;      /* kind of dark blue */
+                  }
+                  .my-title {
+                    font-size: 20px;
+                    color: blue;
+                    border-bottom: 1px solid red;           /* a red line */
+                  }
+                  .studentnummer {
+                    min-width: 110px;
+                    text-align: left;
+                  }
+                  .voornaam {
+                    min-width: 80px;
+                    text-align: left;
+                  }
+                  .tussenvoegsel {
+                    min-width: 110px;
+                    text-align: left;
+                  }
+                  .achternaam {
+                    min-width: 100px;
+                    text-align: left;
+                  }
+                  .groepid-header {
+                    min-width: 100px;
+                    text-align: left;
+                  }
+                  .aanwezig-header {
+                    min-width: 70px;
+                    text-align: left;
+                  }
+                  .afwezig-header {
+                    min-width: 150px;
+                    text-align: left;
+                  }
+                  .aanwezig {
+                    min-width: 100px;
+                  }
+                  .afwezig {
+                    min-width: 100px;
+                  }
+
+                  .my-button {
+                    width: 80px;                        /* full width */
+                    align
+                    color: white;                       /* white tekst */
+                    background: #1a9fd9;                /* kind of blue */
+                    --paper-button-ink-color: #00567B;  /* kind of dark blue */
+                    margin-top: 5px;                    /* enlarge thet default */
+                    margin-left: 275px;                   /* reduce the default */
+                  }
+
+                .klassen {
+                    float:left;
+                    position:absolute;
+                }
+
+                .lessen {
+                    float:left;
+                    position:relative;
+                    margin-top:100px;
+                }
+
+
+
+
+                /* Links inside the dropdown */
+                .dropdown-content a {
+                    color: purple;
+                    padding: 12px 16px;
+                    text-decoration: none;
+                    display: block;
+                }
+
+                .paper-dropdown {
+                  max-width:400px;
+
+                }
+
+                #container2 {
+                    padding:20px !important;
+                }
+
+
+                /* Change color of dropdown links on hover */
+                .dropdown-content a:hover {
+                  background-color: #f1f1f1
+                }
+
+                /* Show the dropdown menu on hover */
+                .dropdown:hover .dropdown-content {
+                    display: block;
+                }
+
+                /* Change the background color of the dropdown button when the dropdown content is shown */
+                .dropdown:hover .dropbtn {
+                    background-color: #3e8e41;
+                    width:500px;
+                }
+
+                .dropdownklassen {
+                    display:inline-block;
+                }
+                  .dropdownlessen {
+                      display:inline-block;
+                  }
+
+            </style>
+
+<div id="container2">
+            <paper-toast
+              id="toast_invalid_aanroep"
+              duration="0"
+              text="U hebt dit scherm op een illegale manier geactiveerd. U wordt verwezen naar de home page!">
+                <paper-button on-click="_toast_clicked" class="toast-button">Sluiten</paper-button>
+            </paper-toast>
+
+          <div class="dropdownklassen">
+              <paper-dropdown label="Klas">
+                <paper-item value="V1B" on-click="_itemSelected">V1B</paper-item>
+                <paper-item value="V1C"  on-click="_itemSelected">V1C</paper-item>
+                <paper-item value="V1D"  on-click="_itemSelected">V1D</paper-item>
+                <paper-item value="V1E"  on-click="_itemSelected">V1E</paper-item>
+                <paper-item value="V1F"  on-click="_itemSelected">V1F</paper-item>
+              </paper-dropdown>
+          </div>
+
+            <div class="dropdownlessen">
+            <P></P>
+            <paper-dropdown label="Les">
+              <template is="dom-repeat" items="[[_c_lessen]]">
+            <paper-item value$="[[item.name]]" start_time$="[[item.start_time]]" end_time$="[[
+item.end_time]]" date$="[[item.date]]" on-click="_itemSelectedLes">[[item.start_time]] -  [[item.end_time]]</paper-item>
+          </template>
+          </paper-dropdown>
+            </div>
+
+          <paper-button on-click="_aanwezigheid_ophalen_request_handler"> laden </paper-button>
+
+
+
+            <div class="opslaanstudenten">
+
+                <div class="my-title">Overzicht van studenten voor de les {{c_les}} van {{c_datum}} {{c_start_tijd}} - {{c_eind_tijd}}</div>
+                <table class="table">
+                  <tr>
+                    <th class="studentnummer">Studentnummer</th>
+                    <th class="voornaam">Voornaam</th>
+                    <th class="tussenvoegsel">Tussenvoegsel</th>
+                    <th class="achternaam">Achternaam</th>
+                    <th class="aanwezig-header">Aanwezig</th>
+                  </tr>
+                  <template is="dom-repeat" items="[[_c_studenten]]">
+                    <tr>
+                      <td class="studentnummer"><a href$="#/student/details/[[item.firstName]]-[[item.lastName]]">[[item.id]]</a></td>
+                      <td class="voornaam"><a href$="#/student/details/[[item.firstName]]-[[item.lastName]]">[[item.firstName]]</a></td>
+                      <td class="tussenvoegsel"><a href$="#/student/details/[[item.firstName]]-[[item.lastName]]">[[item.prefix]]</a></td>
+                      <td class="achternaam"><a href$="#/student/details/[[item.firstName]]-[[item.lastName]]">[[item.lastName]] </a></td>
+                      <td class="aanwezig">
+                         <paper-checkbox
+                          class="my-check"
+                          checked="{{item.attendance}}">
+                        </paper-checkbox>
+                      </td>
+                    </tr>
+                  </template>
+                </table>
+                <paper-button
+                  class="my-button"
+                  on-click="_aanwezigheid_opslaan_request_handler">opslaan
+                </paper-button>
+            </div>
+      </div>
+            <iron-ajax
+              id="ajax_studenten_ophalen"
+              method="POST"
+              url="/klas"
+              handle-as="json"
+              on-response="_aanwezigheid_ophalen_response_handler">
+            </iron-ajax>
+
+          <iron-ajax
+                  id="ajax_aanwezigheid_opslaan"
+                  method="POST"
+                  url="/les/opslaan"
+                  handle-as="json"
+                  on-response="_aanwezigheid_opslaan_response_handler">
+          </iron-ajax>
+
+
+          <iron-ajax
+              id="ajax_lessen_ophalen"
+              method="POST"
+              url="/les/ophalen"
+              handle-as="json"
+              on-response="_les_ophalen_response_handler">
+            </iron-ajax>
+      </div>
+
+      </template>
+
+  <script>
+    (function() {
+      'use strict';
+      /* _xxxx private              : geen external data binding      - geen notify
+         _c_xx private constant     : geen external binding, constant - geen notify
+         c_xx  public constant      : one way external databinding [[c_xx]] - geen notify nodig
+         xxxx  public               : two way external databinding {{xxxx}} - notify nodig
+      */
+      Polymer({
+        is: 'my-invoeren',
+
+        properties: {
+          _c_studenten: {
+            type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
+                                        array is constant groepnr is changable */
+          },
+          _c_lessen: {
+            type: Array,           /* array<student-info>: student-info = {id, firstName, lastName, sameGroup}
+                                        array is constant groepnr is changable */
+          },
+          c_rol: {
+            type: String,
+          },
+          c_username: {
+            type: String,
+          },
+          _systeemdatumstandaard: {
+              type: String,
+            },
+          c_visible: {
+            type: Boolean,
+            value: false,
+            observer: '_initializing',
+          },
+
+            c_urmom: {
+              type: String,
+                value: 'lol',
+            },
+
+            c_klas : {
+                type: String,
+                value: "",
+            },
+
+            c_les : {
+              type: String,
+                value: "",
+            },
+
+            c_datum : {
+                type: String,
+                value: "",
+            },
+
+            c_start_tijd : {
+                type: String,
+                value: "",
+            },
+
+            c_eind_tijd : {
+                type: String,
+                value: "",
+            },
+        },
+
+
+
+        _go_home: function() {
+          var lApp = document.querySelector('my-app');
+          var lAppRouter = lApp.$.approuter;
+          lAppRouter.data={page: ""};
+
+        },
+
+        _initializing : function() {
+
+          if (this.c_visible == true) {
+
+          this._les_ophalen_request_handler();
+            if (this.c_rol=="docent") {
+              this._aanwezigheid_ophalen_request_handler();
+            } else {
+              var lToast = this.$.toast_invalid_aanroep;
+              lToast.open();
+
+            }
+          }
+        },
+
+
+
+        _les_ophalen_request_handler: function() {
+
+            this.$.ajax_lessen_ophalen.contentType="application/json";
+          this.$.ajax_lessen_ophalen.body={
+            "klas": this.c_klas,
+            "leraar" : "jos.vanreenen@hu.nl"
+          };
+          this.$.ajax_lessen_ophalen.generateRequest();
+        },
+
+        _itemSelected : function(e) {
+
+            this.c_klas = e.target.getAttribute("value");
+
+            this._les_ophalen_request_handler();
+            this._les_ophalen_response_handler();
+
+         },
+
+
+          _itemSelectedLes : function(e) {
+
+              this.c_datum = e.target.getAttribute("date");
+              this.c_start_tijd = e.target.getAttribute("start_time");
+              this.c_eind_tijd = e.target.getAttribute("end_time");
+              this.c_les = e.target.getAttribute("value");
+
+          },
+
+        _les_ophalen_response_handler: function(request) {
+          this._c_lessen = request.detail.response;
+        },
+
+
+        _aanwezigheid_ophalen_request_handler: function() {
+
+            this.$.ajax_studenten_ophalen.contentType="application/json";
+            this.$.ajax_studenten_ophalen.body={
+            "klas": this.c_klas,
+              "les" : this.c_les,
+              "datum" : this.c_datum,
+            };
+
+          this.$.ajax_studenten_ophalen.generateRequest();
+        },
+
+        _aanwezigheid_ophalen_response_handler: function(request) {
+          console.log("_mededestudenten_ophalen_response_handler aantal studenten="+request.detail.response.length);
+          this._c_studenten = request.detail.response;
+        },
+
+
+        _aanwezigheid_opslaan_request_handler: function() {
+          console.log("_medestudenten_opslaan_request_handler user="+this.c_username);
+          this.$.ajax_aanwezigheid_opslaan.contentType="application/json";
+          this.$.ajax_aanwezigheid_opslaan.body={
+              "datum": this.c_datum,
+              "start_tijd": this.c_start_tijd,
+              "eind_tijd": this.c_eind_tijd,
+              "les": this.c_les,
+              "studenten": this._c_studenten
+          };
+          this.$.ajax_aanwezigheid_opslaan.generateRequest();
+        },
+
+        _aanwezigheid_opslaan_response_handler: function(request) {
+          console.log("_mededestudenten_opslaan_response_handler errorcode="+request.detail.response.errorcode);
+        },
+
+       _toast_clicked: function(e) {
+         var lToast = this.$.toast_invalid_aanroep;        // meldt ongeldige aanroep
+         lToast.toggle();
+         this._go_home();
+        },
+
+
+
+      });
+    })();
+  </script>
+</dom-module>

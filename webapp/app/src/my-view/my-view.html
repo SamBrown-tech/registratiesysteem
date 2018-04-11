@@ -1,0 +1,124 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+
+
+<dom-module id="my-view">
+  <template>
+    <style>
+      .main-div {
+        margin:25px;
+        padding:10px;
+        background-color:#EEE;
+        border-radius:3px;
+      }
+      .my-button[disabled] {            /* styling als de opslaan button disabled is. */
+        background: lightgray;
+        color: darkgray;
+      }
+
+      .my-button {
+        width: 25%;
+        color: white;
+        background: #1a9fd9;
+        --paper-button-ink-color: #00567B;
+        margin-top: 15px;
+      }
+
+
+    </style>
+
+    <div class="main-div">
+      <h1> Escalatie presentie </h1>
+      <paper-dropdown label="Selecteer een SLBer" value="{{slber}}">
+        <paper-item disabled> Selecteer een SLBer </paper-item>
+        <paper-item value="JohnDoe"> wesleyvanstra@gmail.com </paper-item>
+        <paper-item value="MaryJame"> MaryJane@hotmail.com </paper-item>
+      </paper-dropdown>
+      <paper-input id="student_element" label="Betrefde student" value="{{student}}"></paper-input>
+      <paper-textarea rows="5" id="opmerking_element" label="Opmerking" value="{{note}}"> </paper-textarea>
+      <paper-button
+        id="escaleer_button"
+        class="my-button"
+        on-click="_escalatie_sturen_request_handler"
+        raised>
+          Escaleren
+      </paper-button>
+    </div>
+
+
+    <iron-ajax
+      id="ajax_escalatie_sturen"
+      method="POST"
+      url="/view/send"
+      handle-as="json"
+      on-response="_escalatie_sturen_response_handler">
+    </iron-ajax>
+
+  </template>
+
+  <script>
+  (function() {
+    'use strict';
+
+    /* _xxxx private              : geen external data binding      - geen notify
+       _c_xx private constant     : geen external binding, constant - geen notify
+       c_xx  public constant      : one way external databinding [[c_xx]] - geen notify nodig
+       xxxx  public               : two way external databinding {{xxxx}} - notify nodig
+    */
+    Polymer({
+      is: 'my-view',
+
+      properties: {
+        student: {
+          type: String,
+          value: ""              /* om snel te testen zonder steeds input te doen */
+        },
+        note: {
+          type:String,
+          value: ""
+        },
+        slber: {
+          type:String,
+          value: ""
+        }
+      },
+
+      _escalatie_sturen_request_handler: function() {
+        if(this.student != "" && this.note != ""){
+          console.log("_escalatie_sturen_request_handler user="+this.student);
+          this.$.ajax_escalatie_sturen.contentType="application/json";
+          this.$.ajax_escalatie_sturen.body={
+              "slber" : this.slber,
+              "student":this.student,
+              "note": this.note
+          };
+          this.$.ajax_escalatie_sturen.generateRequest();
+        }
+        else {
+          alert("vul alle velden in");
+        }
+      },
+
+      _escalatie_sturen_response_handler: function(request) {
+        console.log(request.detail.response);
+        console.log("_escalatie_sturen_response_handler errorcode="+request.detail.response.succes);		/* verlaat de pagina en ga terug naar home page */
+        if(request.detail.response.succes == 1) {
+          alert('Email versturen succes');
+          this.set('student', '');
+          this.set('note', '');
+        }
+      else {
+          alert('Email versturen mislukt');
+          this.set('student', '');
+          this.set('note', '');
+        }
+      },
+
+    });
+
+  })();
+  </script>
+</dom-module>

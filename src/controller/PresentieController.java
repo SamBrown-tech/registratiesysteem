@@ -114,8 +114,8 @@ class PresentieController implements Handler {
 				int studentnr = presentie_array_obj.getInt("id");
 				boolean presentie = presentie_array_obj.getBoolean("attendance");
 
-				pw.println(studentnr + "," + datum + "," + start_tijd + "," + eind_tijd + "," + presentie + "," + les);
-
+				pw.println(studentnr + "," + datum + "," + start_tijd + ","
+    				+ eind_tijd + "," + presentie + "," + les + "," + les);
 			}
 
 			fw.close();
